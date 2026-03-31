@@ -15,19 +15,13 @@ function mainDoPost(e) {
   // Nếu React gửi { action, data: {...} } thì ta lấy data bên trong.
   // Nếu React gửi kiểu phẳng { action, idgv, ... } thì lấy chính nó.
   const data = contents.data || contents;  
+  // --- đăng ký
   if (action === "registerTeacher") {
     var sheet = ssAdmin.getSheetByName("idgv");
     if (!sheet) throw new Error("Không tìm thấy sheet idgv");
-    
-    // 1. Kiểm tra dữ liệu đầu vào cơ bản
     if (!data || !data.idgv) throw new Error("Dữ liệu gửi lên bị trống");
 
-    // 2. Lấy toàn bộ cột ID (Cột A) để kiểm tra trùng
-    // getValues() trả về mảng 2 chiều [[id1], [id2], ...]
     var values = sheet.getRange("A:A").getValues();
-    
-    // Sử dụng some() để kiểm tra nhanh xem ID đã tồn tại chưa
-    // Lưu ý: data.idgv từ React gửi lên thường là string, so sánh với giá trị trong sheet
     var isExisting = values.some(function(row) {
       return row[0].toString() === data.idgv.toString();
     });
@@ -35,9 +29,14 @@ function mainDoPost(e) {
     if (isExisting) {
       return ContentService.createTextOutput(JSON.stringify({ 
         success: false, 
-        message: "Mã giáo viên (idgv) này đã tồn tại trên hệ thống!" 
+        message: "Mã giáo viên này đã tồn tại trong hệ thông!" 
       })).setMimeType(ContentService.MimeType.JSON);
     }
+
+    sheet.appendRow(["'" + data.idgv, data.fullname, data.pass, data.subject]);
+    return ContentService.createTextOutput(JSON.stringify({ success: true }))
+                         .setMimeType(ContentService.MimeType.JSON);
+  }
 
     // 3. Nếu chưa tồn tại thì mới thêm hàng mới
     sheet.appendRow(["'" + data.idgv, data.fullname, data.pass, data.subject]);
@@ -45,7 +44,7 @@ function mainDoPost(e) {
     return ContentService.createTextOutput(JSON.stringify({ success: true }))
                          .setMimeType(ContentService.MimeType.JSON);
 }
-  
+  // đăng nhập
   if (action === "loginTeacher") {
     var sheet = ss.getSheetByName("idgv");
     var values = sheet.getDataRange().getValues();
@@ -59,7 +58,7 @@ function mainDoPost(e) {
     }
     return ContentService.createTextOutput(JSON.stringify({ success: false, message: "Sai tài khoản hoặc mật khẩu" })).setMimeType(ContentService.MimeType.JSON);
   }
-  
+  // học sinh đăng nhập
   if (action === "loginStudent") {
     var sheet = ss.getSheetByName("danhsach");
     var values = sheet.getDataRange().getValues();
@@ -73,7 +72,7 @@ function mainDoPost(e) {
     }
     return ContentService.createTextOutput(JSON.stringify({ success: false, message: "Sai SBD hoặc IDGV" })).setMimeType(ContentService.MimeType.JSON);
   }
-  
+  // nhập danh sách học sinh
   if (action === "uploadStudents") {
     var sheet = ss.getSheetByName("danhsach");
     data.students.forEach(function(student) {
@@ -81,7 +80,7 @@ function mainDoPost(e) {
     });
     return ContentService.createTextOutput(JSON.stringify({ success: true })).setMimeType(ContentService.MimeType.JSON);
   }
-
+// xóa học sinh
   if (action === "deleteStudent") {
     var sheet = ss.getSheetByName("danhsach");
     var values = sheet.getDataRange().getValues();
@@ -92,7 +91,7 @@ function mainDoPost(e) {
     }
     return ContentService.createTextOutput(JSON.stringify({ success: true })).setMimeType(ContentService.MimeType.JSON);
   }
-
+// đổi pass
   if (action === "changePassword") {
     var sheet = ss.getSheetByName("idgv");
     var values = sheet.getDataRange().getValues();
