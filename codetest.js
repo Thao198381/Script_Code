@@ -4,7 +4,7 @@ function mainDoGet(e) {
 const params = e.parameter;
   const type = params.type;
   const action = params.action || e.parameter.action;  
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  // const ss = SpreadsheetApp.getActiveSpreadsheet();
   
 //#01
   // Xác minh bên VBA
@@ -412,7 +412,7 @@ const lock = LockService.getScriptLock();
   try {
     const data = JSON.parse(e.postData.contents || "{}");
     const action = (data.action || e.parameter.action || "").toString();
-    const sheetNH = ss.getSheetByName("nganhang");
+    // const sheetNH = ss.getSheetByName("nganhang");
 
     const res = (status, message, payload) =>
       ContentService.createTextOutput(
