@@ -4,8 +4,8 @@ function mainDoGet(e) {
 const params = e.parameter;
   const type = params.type;
   const action = params.action || e.parameter.action;  
-  const ssAdmin = SpreadsheetApp.openById("1ApgSUHrw_vzlkX8x2GKr3YMgsD9S8fcjl0ITleKZhTk");
-  const ss = SpreadsheetApp.openById("1-pi3PpXb_hBNBG5CKT72yPxOsi4gKqa4AukmqWwr6YA");
+  /const ssAdmin = SpreadsheetApp.openById("1ApgSUHrw_vzlkX8x2GKr3YMgsD9S8fcjl0ITleKZhTk");
+  /const ss = SpreadsheetApp.openById("1-pi3PpXb_hBNBG5CKT72yPxOsi4gKqa4AukmqWwr6YA");
   
 //#01
   // Xác minh bên VBA
@@ -413,10 +413,6 @@ const lock = LockService.getScriptLock();
   try {
     const data = JSON.parse(e.postData.contents || "{}");
     const action = (data.action || e.parameter.action || "").toString();
-    const ssAdmin = SpreadsheetApp.openById("1ApgSUHrw_vzlkX8x2GKr3YMgsD9S8fcjl0ITleKZhTk");
-    const ss = SpreadsheetApp.openById("1-pi3PpXb_hBNBG5CKT72yPxOsi4gKqa4AukmqWwr6YA");
-    const sheetNH = ss.getSheetByName("nganhang");
-
     const res = (status, message, payload) =>
       ContentService.createTextOutput(
         JSON.stringify({ status, message, data: payload || null })
@@ -433,41 +429,52 @@ const lock = LockService.getScriptLock();
 // Thay thế đoạn xử lý submit trong mainDoPost
 if (action === "submitExam" || action === "submitExamMatrix") {
   try {
-    // Ép xác định file môn Toán theo ID cố định thầy đã đưa
-    const ssTarget = SpreadsheetApp.openById("1-pi3PpXb_hBNBG5CKT72yPxOsi4gKqa4AukmqWwr6YA");
-    let sheetKq = ssTarget.getSheetByName("ketqua");
+    // 1. Phải đảm bảo ssTarget đã được khai báo bằng openById ở trên
+    // const ssTarget = SpreadsheetApp.openById("1-pi3PpXb_hBNBG5CKT72yPxOsi4gKqa4AukmqWwr6YA");
     
+    let sheetKq = ss.getSheetByName("ketqua");    
     if (!sheetKq) {
       sheetKq = ssTarget.insertSheet("ketqua");
       sheetKq.appendRow(["Timestamp", "Mã đề", "SBD", "Họ tên", "Lớp", "Tổng điểm", "Thời gian làm", "IDGV", "Mã KQ"]);
     }
 
-    // LẤY DỮ LIỆU VÀ CHUẨN HÓA (Để React gửi kiểu gì cũng nhận được)
+    // 2. CHUẨN HÓA DỮ LIỆU
     const maDe = (data.exams || data.examCode || "").toString().toUpperCase();
     const maGV = (data.idgv || "").toString();
     const diem = data.tongdiem !== undefined ? data.tongdiem : (data.score || 0);
     const lop  = (data.class || data.className || "Tự do").toString();
     const thoiGian = data.time || 0;
+    const sbdHienTai = data.sbd || "";
 
-    // GHI DÒNG DỮ LIỆU
-    sheetKq.appendRow([
-      data.timestamp || new Date().toLocaleString('vi-VN'), // Cột A
-      maDe,                                                // Cột B
-      data.sbd || "",                              // Cột C (Thêm nháy đơn tránh mất số 0)
-      data.name || "Thí sinh",                             // Cột D
+    // 3. TÌM HÀNG TRỐNG TIẾP THEO (Ép ghi thay vì dùng appendRow)
+    const lastRow = sheetKq.getLastRow();
+    const nextRow = lastRow + 1;
+
+    // Chuẩn bị mảng dữ liệu 1 hàng
+    const rowData = [
+      data.timestamp || new Date().toLocaleString('vi-VN'), // A
+      maDe,                                                // B
+      sbdHienTai,                                          // C
+      data.name || "Thí sinh",                             // D
       lop,                                                 // E
       diem,                                                // F
       thoiGian,                                            // G
       "'" + maGV,                                          // H
-      maDe + "." + maGV                                    // I (Mã tra cứu)
-    ]);
+      maDe + "." + maGV                                    // I
+    ];
 
-    // Tự động căn chỉnh chiều rộng cột cho đẹp
+    // GHI ĐÈ VÀO RANGE CỤ THỂ
+    sheetKq.getRange(nextRow, 1, 1, 9).setValues([rowData]);
+
+    // 4. FORMAT NHANH CHO ĐẸP
     sheetKq.autoResizeColumns(1, 9);
+    // Kẻ khung cho hàng vừa ghi (tùy chọn)
+    sheetKq.getRange(nextRow, 1, 1, 9).setBorder(true, true, true, true, true, true);
 
     return ContentService.createTextOutput(JSON.stringify({ 
       status: "success", 
-      message: "Ghi điểm thành công vào file TOÁN!" 
+      message: "Ghi điểm thành công vào file TOÁN!",
+      rowRecorded: nextRow // Trả về số hàng đã ghi để thầy check bên Console React
     })).setMimeType(ContentService.MimeType.JSON);
 
   } catch (err) {
