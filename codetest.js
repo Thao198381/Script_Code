@@ -426,7 +426,7 @@ const lock = LockService.getScriptLock();
   }
 
   // LOGIC CHUNG CHO CẢ 2 LOẠI (Vì cấu trúc cột ghi là giống nhau)
-  if (action === "submitExamMatrix" || action === "submitExamWord") {
+  if (action === "submitExamMatrix") {
     try {
       sheetKq.appendRow([
         data.timestamp,          // Cột A: Timestamp
@@ -630,7 +630,7 @@ const lock = LockService.getScriptLock();
 
 // #07 Thi lẻ
 // Ghi kết quả thi ma trận và thi lẻ
-    if (data.action === "submitExamW") {
+    if (data.action === "submitExam") {
       try {
 
         const sheetExams = ss.getSheetByName("exams");    
