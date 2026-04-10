@@ -430,37 +430,51 @@ const lock = LockService.getScriptLock();
 
   // LOGIC CHUNG CHO CẢ 2 LOẠI (Vì cấu trúc cột ghi là giống nhau)
   // Tìm đến đoạn xử lý kết quả và thay bằng đoạn này:
+// Thay thế đoạn xử lý submit trong mainDoPost
 if (action === "submitExam" || action === "submitExamMatrix") {
   try {
-    const sheetKq = ss.getSheetByName("ketqua") || ss.insertSheet("ketqua");
+    // Ép xác định file môn Toán theo ID cố định thầy đã đưa
+    const ssTarget = SpreadsheetApp.openById("1-pi3PpXb_hBNBG5CKT72yPxOsi4gKqa4AukmqWwr6YA");
+    let sheetKq = ssTarget.getSheetByName("ketqua");
     
-    // Nếu sheet mới tinh thì nạp tiêu đề
-    if (sheetKq.getLastRow() === 0) {
+    if (!sheetKq) {
+      sheetKq = ssTarget.insertSheet("ketqua");
       sheetKq.appendRow(["Timestamp", "Mã đề", "SBD", "Họ tên", "Lớp", "Tổng điểm", "Thời gian làm", "IDGV", "Mã KQ"]);
     }
 
-    // Chuẩn hóa dữ liệu từ cả 2 nguồn (Matrix hoặc Đề lẻ)
-    const maDe = (data.exams || data.examCode || "").toString();
+    // LẤY DỮ LIỆU VÀ CHUẨN HÓA (Để React gửi kiểu gì cũng nhận được)
+    const maDe = (data.exams || data.examCode || "").toString().toUpperCase();
     const maGV = (data.idgv || "").toString();
-    const diem = data.tongdiem || data.score || 0;
-    const lop  = data.class || data.className || "";
+    const diem = data.tongdiem !== undefined ? data.tongdiem : (data.score || 0);
+    const lop  = (data.class || data.className || "Tự do").toString();
+    const thoiGian = data.time || 0;
 
+    // GHI DÒNG DỮ LIỆU
     sheetKq.appendRow([
-      data.timestamp || new Date().toLocaleString('vi-VN'), // A: Thời gian
-      maDe,                                                // B: Mã đề
-      data.sbd || "",                              // C: SBD (thêm dấu nháy tránh mất số 0)
-      data.name || "",                                     // D: Tên
-      lop,                                                 // E: Lớp
-      diem,                                                // F: Điểm
-      data.time || 0,                                      // G: Thời gian (giây)
-      "'" + maGV,                                          // H: IDGV
-      maDe + "." + maGV                                    // I: Mã KQ (để tra cứu)
+      data.timestamp || new Date().toLocaleString('vi-VN'), // Cột A
+      maDe,                                                // Cột B
+      data.sbd || "",                              // Cột C (Thêm nháy đơn tránh mất số 0)
+      data.name || "Thí sinh",                             // Cột D
+      lop,                                                 // E
+      diem,                                                // F
+      thoiGian,                                            // G
+      "'" + maGV,                                          // H
+      maDe + "." + maGV                                    // I (Mã tra cứu)
     ]);
 
-    return resJSON({ status: "success", message: "Ghi điểm thành công!" });
+    // Tự động căn chỉnh chiều rộng cột cho đẹp
+    sheetKq.autoResizeColumns(1, 9);
+
+    return ContentService.createTextOutput(JSON.stringify({ 
+      status: "success", 
+      message: "Ghi điểm thành công vào file TOÁN!" 
+    })).setMimeType(ContentService.MimeType.JSON);
 
   } catch (err) {
-    return resJSON({ status: "error", message: "Lỗi ghi điểm: " + err.toString() });
+    return ContentService.createTextOutput(JSON.stringify({ 
+      status: "error", 
+      message: "Lỗi ghi điểm: " + err.toString() 
+    })).setMimeType(ContentService.MimeType.JSON);
   }
 }
 
@@ -1031,35 +1045,7 @@ function getLinkFromRouting(idNumber) {
   return null;
 }
 
-function getSpreadsheetByTarget(targetId) {
-  // 1. Nếu không có ID, dùng ngay file hiện tại (Active)
-  if (!targetId || targetId.toString().trim() === "") return SpreadsheetApp.getActiveSpreadsheet();
 
-  const sheet = ssAdmin.getSheetByName("idgv");
-  const rows = sheet.getDataRange().getValues();
-
-  for (let i = 1; i < rows.length; i++) {
-    // Cột A: idNumber, Cột C: linkscript
-    if (rows[i][0].toString().trim() === targetId.toString().trim()) {
-      let url = rows[i][2].toString().trim();
-      if (url && url.startsWith("http")) {
-        try {
-          // Nếu link là file Master thì trả về luôn
-          if (url.indexOf(ss.getId()) !== -1) return ss;
-          return SpreadsheetApp.openByUrl(url);
-        } catch (e) {
-          console.log("Lỗi mở file riêng, chuyển về file hiện tại.");
-        }
-      }
-      break;
-    }
-  }
-
-  // 2. QUAN TRỌNG: Nếu duyệt hết mà không thấy targetId trong bảng idgv 
-  // (Nghĩa là GV tự do hoặc ID mới chưa đăng ký)
-  // TRẢ VỀ file hiện tại (getActive) thay vì ép vào file Master cố định
-  return SpreadsheetApp.getActiveSpreadsheet();
-}
 
 function replaceIdInBlock(block, newId) {
   if (block.match(/id\s*:\s*\d+/)) return block.replace(/id\s*:\s*\d+/, "id: " + newId);
