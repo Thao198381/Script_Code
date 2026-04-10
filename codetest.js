@@ -434,7 +434,7 @@ if (action === "submitExam" || action === "submitExamMatrix") {
     
     let sheetKq = ss.getSheetByName("ketqua");    
     if (!sheetKq) {
-      sheetKq = ssTarget.insertSheet("ketqua");
+      sheetKq = ss.insertSheet("ketqua");
       sheetKq.appendRow(["Timestamp", "Mã đề", "SBD", "Họ tên", "Lớp", "Tổng điểm", "Thời gian làm", "IDGV", "Mã KQ"]);
     }
 
@@ -447,8 +447,15 @@ if (action === "submitExam" || action === "submitExamMatrix") {
     const sbdHienTai = data.sbd || "";
 
     // 3. TÌM HÀNG TRỐNG TIẾP THEO (Ép ghi thay vì dùng appendRow)
-    const lastRow = sheetKq.getLastRow();
-    const nextRow = lastRow + 1;
+    // const lastRow = sheetKq.getLastRow();
+    // const nextRow = lastRow + 1;
+     const vals = sheetKq.getDataRange().getValues();
+      let nextRow = -1;
+      for (let i = 1; i < vals.length; i++) {
+        if (vals[i][1].trim() === "") {
+          nextRow = i + 1; break;
+        }
+      }
 
     // Chuẩn bị mảng dữ liệu 1 hàng
     const rowData = [
