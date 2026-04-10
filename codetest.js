@@ -426,32 +426,40 @@ const lock = LockService.getScriptLock();
   }
 
   // LOGIC CHUNG CHO CẢ 2 LOẠI (Vì cấu trúc cột ghi là giống nhau)
-  if (action === "submitExamMatrix") {
-    try {
-      sheetKq.appendRow([
-        data.timestamp,          // Cột A: Timestamp
-        data.exams,              // Cột B: exams
-        data.sbd,                // Cột C: sbd (thêm dấu nháy để tránh mất số 0)
-        data.name,               // Cột D: name
-        data.class,              // Cột E: class
-        data.tongdiem,           // Cột F: tongdiem
-        data.time,               // Cột G: time
-        "'" + data.idgv          // Cột H: idgv
-      ]);
-
-      return ContentService.createTextOutput(JSON.stringify({ 
-        status: "success", 
-        message: "Đã ghi nhận kết quả " + (action === "submitExamMatrix" ? "Ma trận" : "Đề lẻ")
-      })).setMimeType(ContentService.MimeType.JSON);
-      
-    } catch (err) {
-      return ContentService.createTextOutput(JSON.stringify({ 
-        status: "error", 
-        message: err.toString() 
-      })).setMimeType(ContentService.MimeType.JSON);
+  // Tìm đến đoạn xử lý kết quả và thay bằng đoạn này:
+if (action === "submitExam" || action === "submitExamMatrix") {
+  try {
+    const sheetKq = ss.getSheetByName("ketqua") || ss.insertSheet("ketqua");
+    
+    // Nếu sheet mới tinh thì nạp tiêu đề
+    if (sheetKq.getLastRow() === 0) {
+      sheetKq.appendRow(["Timestamp", "Mã đề", "SBD", "Họ tên", "Lớp", "Tổng điểm", "Thời gian làm", "IDGV", "Mã KQ"]);
     }
-  }
 
+    // Chuẩn hóa dữ liệu từ cả 2 nguồn (Matrix hoặc Đề lẻ)
+    const maDe = (data.exams || data.examCode || "").toString();
+    const maGV = (data.idgv || "").toString();
+    const diem = data.tongdiem || data.score || 0;
+    const lop  = data.class || data.className || "";
+
+    sheetKq.appendRow([
+      data.timestamp || new Date().toLocaleString('vi-VN'), // A: Thời gian
+      maDe,                                                // B: Mã đề
+      data.sbd || "",                              // C: SBD (thêm dấu nháy tránh mất số 0)
+      data.name || "",                                     // D: Tên
+      lop,                                                 // E: Lớp
+      diem,                                                // F: Điểm
+      data.time || 0,                                      // G: Thời gian (giây)
+      "'" + maGV,                                          // H: IDGV
+      maDe + "." + maGV                                    // I: Mã KQ (để tra cứu)
+    ]);
+
+    return resJSON({ status: "success", message: "Ghi điểm thành công!" });
+
+  } catch (err) {
+    return resJSON({ status: "error", message: "Lỗi ghi điểm: " + err.toString() });
+  }
+}
 
     // 2. Nếu sau này thầy gửi dữ liệu đăng ký (có pass, phone...)
     if (data.type === 'register') {
@@ -629,40 +637,7 @@ const lock = LockService.getScriptLock();
 }
 
 // #07 Thi lẻ
-// Ghi kết quả thi ma trận và thi lẻ
-    if (data.action === "submitExam") {
-      try {
 
-        const sheetExams = ss.getSheetByName("exams");    
-
-        // Tìm dòng chứa mã đề để biết hàng cần ghi hoặc ghi mới vào sheet kết quả
-        // Ở đây mình ví dụ ghi vào cuối sheet "exams" hoặc bạn nên tạo sheet "ketqua" riêng
-        const sheetKq = ss.getSheetByName("ketqua") || sheetExams;
-        const maDe = data.exams || data.examCode || "";
-        const maGV = data.idgv || "";
-    
-    // TỰ TẠO CHUỖI MODE_KQ NGAY TẠI ĐÂY (Thay cho lệnh gán trên Sheet)
-        const modeKqTuDong = maDe.toString() + "." + maGV.toString();
-
-        sheetKq.appendRow([
-          data.timestamp,                                // Cột A         
-          data.examCode || data.exams || "",             // Cột B: Nhận cả 2 tên biến
-          data.sbd || "",                                // Cột C
-          data.name || "",                               // Cột D
-          data.className || data.class || "",            // Cột E: Nhận cả 2 tên biến
-          data.tongdiem || 0,                            // Cột F
-          data.time || 0,                                // Cột G
-          "'" + (data.idgv || ""),                         // Cột H  
-          modeKqTuDong || "",                             // Cột I     
-         ]);
-
-        return ContentService.createTextOutput(JSON.stringify({ status: "success" }))
-          .setMimeType(ContentService.MimeType.JSON);
-      } catch (err) {
-        return ContentService.createTextOutput(JSON.stringify({ status: "error", message: err.toString() }))
-          .setMimeType(ContentService.MimeType.JSON);
-      }
-    }
     // =================================================================== TRỘN ĐỀ ===========================================
 
     if (action === "studentGetExam") {
