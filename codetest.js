@@ -4,13 +4,14 @@ function mainDoGet(e) {
 const params = e.parameter;
   const type = params.type;
   const action = params.action || e.parameter.action;  
-  // const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ssAdmin = SpreadsheetApp.openById("1ApgSUHrw_vzlkX8x2GKr3YMgsD9S8fcjl0ITleKZhTk");
+  const ss = SpreadsheetApp.openById("1-pi3PpXb_hBNBG5CKT72yPxOsi4gKqa4AukmqWwr6YA");
   
 //#01
   // Xác minh bên VBA
  if (action === "getIdGV") {
   const sheet = ssAdmin.getSheetByName("idgv");
-   const data = sheet.getRange("A2:A" + sheet.getLastRow())
+  const data = sheet.getRange("A2:A" + sheet.getLastRow())
                   .getValues()
                   .flat()
                   .map(item => String(item).slice(-9));
@@ -412,7 +413,9 @@ const lock = LockService.getScriptLock();
   try {
     const data = JSON.parse(e.postData.contents || "{}");
     const action = (data.action || e.parameter.action || "").toString();
-    // const sheetNH = ss.getSheetByName("nganhang");
+    const ssAdmin = SpreadsheetApp.openById("1ApgSUHrw_vzlkX8x2GKr3YMgsD9S8fcjl0ITleKZhTk");
+    const ss = SpreadsheetApp.openById("1-pi3PpXb_hBNBG5CKT72yPxOsi4gKqa4AukmqWwr6YA");
+    const sheetNH = ss.getSheetByName("nganhang");
 
     const res = (status, message, payload) =>
       ContentService.createTextOutput(
