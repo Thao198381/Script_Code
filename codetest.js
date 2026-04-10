@@ -985,7 +985,7 @@ if (closeTime && now > closeTime) {
     }
     if (data.type === 'quiz') {
       let sheetQuiz = ss.getSheetByName("ketquaQuiZ") || ss.insertSheet("ketquaQuiZ");
-      sheetQuiz.appendRow([new Date(), data.examCode || "QUIZ", data.name || "N/A", data.className || "", data.school || "", data.phoneNumber || "", data.score || 0, data.totalTime || "00:00", data.stk || "", data.bank || ""]);
+      sheetQuiz.appendRow([new Date(), data.examCode || "QUIZ", data.name || "N/A", data.class || "", data.school || "", data.phoneNumber || "", data.score || 0, data.totalTime || "00:00", data.stk || "", data.bank || ""]);
       return createResponse("success", "Đã lưu kết quả Quiz");
     }
 
@@ -997,7 +997,7 @@ if (closeTime && now > closeTime) {
         //data.examCode, 
        // data.sbd, 
        // data.name, 
-       // data.className, 
+       // data.class, 
        // data.score, 
        // data.totalTime, 
        // data.idgv, 
