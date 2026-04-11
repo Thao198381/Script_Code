@@ -423,6 +423,9 @@ if (action === 'getAppConfigmt') {
 } 
 
 
+// Hết Doget ###
+
+
   
 function mainDoPost(e) {
 // #05 Xác minh
@@ -1063,6 +1066,8 @@ if (closeTime && now > closeTime) {
     lock.releaseLock();
   }
 }
+
+// Hết dopost ###
 // #09 CÁC HÀM PHỤ TRỢ (Để hết vào đây)
 function getLinkFromRouting(idNumber) {
   const sheet = ssAdmin.getSheetByName("idgv");
