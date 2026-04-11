@@ -460,12 +460,12 @@ if (action === "submitExam" || action === "submitExamMatrix") {
     }
 
     // 2. CHUẨN HÓA DỮ LIỆU
-    const maDe = (data.exams || data.examCode || "").toString().toUpperCase();
-    const maGV = (data.idgv || "").toString();
+    const exams = (data.exams || data.examCode || "").toString().toUpperCase();
+    const idgv = (data.idgv || "").toString();
     const diem = data.tongdiem !== undefined ? data.tongdiem : (data.score || 0);
-    const lop  = (data.class || data.className || "Tự do").toString();
+    const className  = (data.class || data.className || "Tự do").toString();
     const thoiGian = data.time || 0;
-    const sbdHienTai = data.sbd || "";
+    const sbd = data.sbd || "";
 
     // 3. TÌM HÀNG TRỐNG TIẾP THEO (Ép ghi thay vì dùng appendRow)
     // const lastRow = sheetKq.getLastRow();
@@ -487,24 +487,21 @@ if (action === "submitExam" || action === "submitExamMatrix") {
     // Chuẩn bị mảng dữ liệu 1 hàng
     const rowData = [
       data.timestamp || new Date().toLocaleString('vi-VN'), // A
-      maDe,                                                // B
-      sbdHienTai,                                          // C
+      exams,                                                // B
+      sbd,                                          // C
       data.name || "Thí sinh",                             // D
-      lop,                                                 // E
+      className,                                                 // E
       diem,                                                // F
       thoiGian,                                            // G
-      "'" + maGV,                                          // H
-      maDe + "." + maGV                                    // I
+      "", "", "", "", "", "", "", "", "", "",              // H đến Q
+      "'" + idgv,
+      supper(exams + "." + idgv),                                    // S
+      supper(exams + "." + sbd + "." + idgv)
     ];
 
     // GHI ĐÈ VÀO RANGE CỤ THỂ
     sheetKq.getRange(nextRow, 1, 1, rowData.length).setValues([rowData]);
-
-    // 4. FORMAT NHANH CHO ĐẸP
-    sheetKq.autoResizeColumns(1, 9);
-    // Kẻ khung cho hàng vừa ghi (tùy chọn)
-    // sheetKq.getRange(nextRow, 1, 1, 9).setBorder(true, true, true, true, true, true);
-
+   
     return ContentService.createTextOutput(JSON.stringify({ 
       status: "success", 
       message: "Ghi điểm thành công vào file TOÁN!",
