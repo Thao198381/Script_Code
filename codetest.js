@@ -4,8 +4,7 @@ function mainDoGet(e) {
 const params = e.parameter;
   const type = params.type;
   const action = params.action || e.parameter.action;  
-  //const ssAdmin = SpreadsheetApp.openById("1ApgSUHrw_vzlkX8x2GKr3YMgsD9S8fcjl0ITleKZhTk");
-  //const ss = SpreadsheetApp.openById("1-pi3PpXb_hBNBG5CKT72yPxOsi4gKqa4AukmqWwr6YA");
+  
   
 //#01
   // Xác minh bên VBA
@@ -430,7 +429,7 @@ const lock = LockService.getScriptLock();
 if (action === "submitExam" || action === "submitExamMatrix") {
   try {
     // 1. Phải đảm bảo ssTarget đã được khai báo bằng openById ở trên
-    // const ssTarget = SpreadsheetApp.openById("1-pi3PpXb_hBNBG5CKT72yPxOsi4gKqa4AukmqWwr6YA");
+   
     
     let sheetKq = ss.getSheetByName("ketqua");    
     if (!sheetKq) {
