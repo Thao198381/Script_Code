@@ -477,7 +477,13 @@ if (action === "submitExam" || action === "submitExamMatrix") {
           nextRow = i + 1; break;
         }
       }
+    // NẾU KHÔNG TÌM THẤY HÀNG TRỐNG THÌ GHI VÀO DÒNG CUỐI CÙNG TIẾP THEO
+    if (nextRow === -1) {
+      nextRow = sheetKq.getLastRow() + 1;
+    }
 
+    // Đảm bảo nextRow không bao giờ nhỏ hơn 2 (tránh ghi đè tiêu đề hàng 1)
+    if (nextRow < 2) nextRow = 2;
     // Chuẩn bị mảng dữ liệu 1 hàng
     const rowData = [
       data.timestamp || new Date().toLocaleString('vi-VN'), // A
@@ -492,12 +498,12 @@ if (action === "submitExam" || action === "submitExamMatrix") {
     ];
 
     // GHI ĐÈ VÀO RANGE CỤ THỂ
-    sheetKq.getRange(nextRow, 1, 1, 9).setValues([rowData]);
+    sheetKq.getRange(nextRow, 1, 1, rowData.length).setValues([rowData]);
 
     // 4. FORMAT NHANH CHO ĐẸP
     sheetKq.autoResizeColumns(1, 9);
     // Kẻ khung cho hàng vừa ghi (tùy chọn)
-    sheetKq.getRange(nextRow, 1, 1, 9).setBorder(true, true, true, true, true, true);
+    // sheetKq.getRange(nextRow, 1, 1, 9).setBorder(true, true, true, true, true, true);
 
     return ContentService.createTextOutput(JSON.stringify({ 
       status: "success", 
