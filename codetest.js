@@ -1567,7 +1567,7 @@ function createResponse(status, message, data) {
 // Giữ lại resJSON để phục vụ các đoạn code cũ đang gọi tên này
 function resJSON(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
-}
+}getSingleQuestion
 function jsonOutput(obj) {
   return ContentService
     .createTextOutput(JSON.stringify(obj))
@@ -1579,7 +1579,12 @@ function N9(id) {
 }
 function supper(text) {
   if (text === null || text === undefined) return "";
-   return text.toString().replace(/'/g, "").toUpperCase().trim()
+  
+  return text.toString()
+    .replace(/'/g, "")           // Xóa dấu nháy đơn
+    .replace(/\s+/g, " ")        // Biến mọi loại khoảng trắng (tab, xuống dòng, cách nhiều) thành 1 dấu cách
+    .trim()                      // Xóa khoảng trắng 2 đầu
+    .toUpperCase();              // Viết hoa toàn bộ
 }
   
 
